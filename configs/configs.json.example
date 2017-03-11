@@ -1,0 +1,20 @@
+{
+  "rtu":{
+    "login":"login",
+    "password":"password",
+    "ip":"8.8.8.8"
+
+  },
+  "xml":{
+    "prettyXml":false
+  },
+  "sybase":{
+    "host":"192.168.1.1",
+    "port":5002,
+    "dbName":"dbname",
+    "user":"dblogin",
+    "password":"dbpassword"
+
+
+  }
+}
