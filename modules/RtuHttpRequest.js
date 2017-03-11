@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 const configs= require('../configs/configs.json');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-function RtuResponseXml(xml) {
+module.exports=function RtuResponseXml(xml) {
     if (!(this instanceof RtuResponseXml)){
         return new RtuResponseXml(xml);
     }
@@ -28,5 +28,5 @@ function RtuResponseXml(xml) {
     })
 
 
-}
+};
 

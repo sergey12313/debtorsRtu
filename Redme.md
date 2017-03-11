@@ -1,2 +1,2 @@
-Disconnection of debtors to "RTU"
+Disconnection of debtors  to soft switch RTU"
     

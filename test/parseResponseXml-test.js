@@ -6,29 +6,27 @@
 const chai =require('chai');
 
 //var chaiAsPromised = require("chai-as-promised");
-const rtuRequest= require('../modules/RtuRequest');
-const xmlStringGen=('../modules/xmlStringGen')
+const rtuRequest= require('../modules/RtuHttpRequest');
+const XmlStringGen=require("../modules/xmlStringGen");
 chai.should();
 let xmlForTestsNumbers={};
 
 //const parseResponseXml = require('./modules/parseResponseXml');
-//chai.use(chaiAsPromised);
+
 
 const expect = chai.expect;
 
 describe('Генерация xml ', ()=>{
     it('гененрирует валидный xml ',()=>{
-        expect(xmlStringGen('16666')).to.have.string('<command name=1');
+        expect(XmlStringGen(16666).getNumConfigs()).to.have.string('<?xml version="1.0" encoding="utf-8"?>');
     });
 
 
-
 });
-
 describe('Get Rtu', ()=>{
     it('Подключается к РТУ и получает  xml',()=>{
-        return rtuget('').then(result=>{
-            expect(result).to.have.string('<command name=');
+        return rtuRequest('').then(result=>{
+            expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
 
         })
     });
