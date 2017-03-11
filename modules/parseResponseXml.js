@@ -1,8 +1,5 @@
-/**
- * Created by sergey on 09.03.17.
- */
 "use strict";
-const rtuget= require('./RtuRequest');
+//const rtuget= require('./RtuRequest');
 const X2JS = require('x2js');
 
 

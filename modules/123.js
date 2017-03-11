@@ -10,6 +10,4 @@ resolvePromise().then(() => {
     console.log('resolved');
 }).catch((err) => {
     console.log(err);
-});/**
- * Created by sergey on 09.03.17.
- */
+});
