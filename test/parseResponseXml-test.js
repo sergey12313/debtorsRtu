@@ -8,8 +8,16 @@ const chai =require('chai');
 //var chaiAsPromised = require("chai-as-promised");
 const rtuRequest= require('../modules/RtuHttpRequest');
 const XmlStringGen=require("../modules/xmlStringGen");
+const ParseXml=require('../modules/parseResponseXml');
+
 chai.should();
-let xmlForTestsNumbers={};
+let TestsNumbers={
+    'numForReadWrite':'16666',
+    'capacityEmptyAndManyGroups': '16667',
+    'globalCapacity':'16668',
+    'notGroups':'16669'
+
+};
 
 //const parseResponseXml = require('./modules/parseResponseXml');
 
@@ -31,6 +39,12 @@ describe('Get Rtu', ()=>{
             expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
         })
     });
+    it('Подключается к РТУ и получает  xml',()=>{
+        return rtuRequest('').then(result=>{
+            expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
+        })
+    });
+
 
 
 
@@ -38,7 +52,51 @@ describe('Get Rtu', ()=>{
 
 });
 
+describe('Проверка Парсинга', ()=>{
+    let xml={};
+    for(let key in TestsNumbers){
+        xml[key]=XmlStringGen(TestsNumbers[key]).getNumConfigs();
+    }
+    for(let key in xml)
+    {
+        it(`привутсвие объекта групп у ${key}`,()=>{
+            return rtuRequest(xml[key]).then(result=>{
+                let obj = new ParseXml(result).getGroupsAndCapacity();
+                //console.log(obj);
+                expect(obj).to.have.property('groups')
+                    .that.is.an('object')
+                    .to.be.not.empty;
+                expect(obj).to.have.property('capacity');
 
+
+            })
+        });
+        it(`привутсвие capacity у ${key}`,()=>{
+            return rtuRequest(xml[key]).then(result=>{
+                let obj = new ParseXml(result).getGroupsAndCapacity();
+
+                //console.log(obj);
+                //expect(obj).to.have.property('capacity')
+                  //  .to.satisfy(+);
+
+            })
+        });
+
+    }
+
+  /*  it('получение обьекта ',()=>{
+
+        return rtuRequest('').then(result=>{
+            expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
+        })
+    });*/
+
+
+
+
+
+
+});
 /*
 describe('', function() {
         it('should return -1 when the value is not present', function() {

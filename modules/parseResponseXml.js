@@ -63,18 +63,31 @@ ParseXml.prototype.getGroupsAndCapacity= function () {
         optionsSaved.id=this._xmlObj.Root.command.User.id;
        // id=JSON.stringify(this._xmlObj.Root.command.User.id);
         optionsSaved.capacity =this._xmlObj.Root.command.User.in_capacity;
-        let groups= this._xmlObj.Root.command.User.groups.group;
-        console.log(this._xmlObj.Root.command.User.groups)
+        let groups;
+        if(!this._xmlObj.Root.command.User.groups.hasOwnProperty('group')){
+           optionsSaved.groups['All']=true;
+        }
+        else{
+            groups= this._xmlObj.Root.command.User.groups.group;
+            if(groups.splice){
+                groups.forEach((element)=>{
+                    optionsSaved.groups[element.name]=JSON.parse(element.enabled)
+                })
+
+            }
+
+        }
+
+
         ///Может не быть групп
-        if(groups.splice){
+/*        if(groups.splice){
             groups.forEach((element)=>{
                 optionsSaved.groups[element.name]=JSON.parse(element.enabled)
             })
 
-        }
-        if(groups.name){
-            optionsSaved.groups[groups.name]=JSON.parse(groups.enabled)
-        }
+        }*/
+        
+
       //  console.log(groups.splice)
         //groups.forEach()
         //console.log(groups);
@@ -115,9 +128,11 @@ ParseXml.prototype.resultEdit=function () {
 
 module.exports = ParseXml;
 
+/*
 rtuget(req).then(d=> new ParseXml(d).parseRtuResponse().getGroupsAndCapacity())
     .then(log=>console.dir(log))
     .catch(e=>console.log(e.message, e.name))
+*/
 
 
 /*
