@@ -7,6 +7,7 @@ const rtuRequest= require('../modules/RtuHttpRequest');
 const XmlStringGen=require("../modules/xmlStringGen");
 const ParseXml=require('../modules/parseResponseXml');
 
+
 chai.should();
 let TestsNumbers={
     'numForReadWrite':'16666',
@@ -58,6 +59,7 @@ describe('Parser test', ()=>{
 
                 return resultResponse[key].then(result=>{
                     let obj = new ParseXml(result).getGroupsAndCapacity();
+                   console.log(obj);
                     let toNum = Number(obj.capacity);
                     expect(toNum).to.be.a('number').not.to.be.NaN;
 
@@ -67,6 +69,11 @@ describe('Parser test', ()=>{
                 return resultResponse[key].then(result=>{
                     expect(result).to.be.a('string');
                 })
+
+            });
+            it('set Deb and return default',()=>{
+                return
+
 
             })
 

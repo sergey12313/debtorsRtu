@@ -94,18 +94,6 @@ ParseXml.prototype.getGroupsAndCapacity= function () {
 
     }
 
-    /*
-     let test_group={
-     "All":true,
-     "SetFwd":true,
-     "Forward":true,
-     "Transfer":true,
-
-
-     };
-     *!/
-
-     */
     catch (e){
         throw e
     }

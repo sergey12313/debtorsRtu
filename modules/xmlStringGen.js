@@ -77,16 +77,17 @@ XmlStringGen.prototype.setDebNum=function () {
 
 
 };
-XmlStringGen.prototype.setDefault=function (groups,capacity) {
+XmlStringGen.prototype.setCapacityAndGroups=function (obj) {
+
     this._obj.commands.command=new SetCommand("Edit",this._num);
     this._obj.commands.command.item.groups={};
     this._obj.commands.command.item.groups.group=[];
-    this._obj.commands.command.item.owner_capacity=capacity.owner_capacity;
-    this._obj.commands.command.item.in_capacity=capacity.in_capacity;
-    this._obj.commands.command.item.out_capacity=capacity.out_capacity;
-    this._obj.commands.command.item.total_capacity=capacity.total_capacity;
+    //this._obj.commands.command.item.owner_capacity=capacity.owner_capacity;
+    this._obj.commands.command.item.in_capacity=obj.capacity;
+   // this._obj.commands.command.item.out_capacity=capacity.out_capacity;
+  //  this._obj.commands.command.item.total_capacity=capacity.total_capacity;
 
-    for (let key in groups){
+    for (let key in obj.groups){
         let group={name:[key],enabled:groups[key]};
         this._obj.commands.command.item.groups.group.push(group);
 
