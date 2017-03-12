@@ -1,6 +1,3 @@
-/**
- * Created by sergey on 09.03.17.
- */
 "use strict";
 //const assert = require('assert');
 const chai =require('chai');
@@ -39,16 +36,6 @@ describe('Get Rtu', ()=>{
             expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
         })
     });
-    it('Подключается к РТУ и получает  xml',()=>{
-        return rtuRequest('').then(result=>{
-            expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
-        })
-    });
-
-
-
-
-
 
 });
 
@@ -72,11 +59,16 @@ describe('Parser test', ()=>{
                 return resultResponse[key].then(result=>{
                     let obj = new ParseXml(result).getGroupsAndCapacity();
                     let toNum = Number(obj.capacity);
-                    //console.log(toNum);
                     expect(toNum).to.be.a('number').not.to.be.NaN;
 
                 })
             });
+            it(`Id is string `,()=>{
+                return resultResponse[key].then(result=>{
+                    expect(result).to.be.a('string');
+                })
+
+            })
 
 
 
@@ -89,34 +81,4 @@ describe('Parser test', ()=>{
 
     }
 
-  /*  it('получение обьекта ',()=>{
-
-        return rtuRequest('').then(result=>{
-            expect(result).to.have.string('<?xml version="1.0" encoding="UTF-8"?>');
-        })
-    });*/
-
-
-
-
-
-
 });
-/*
-describe('', function() {
-        it('should return -1 when the value is not present', function() {
-            assert.equal(-1, [1,2,3].indexOf(4));
-        });
-});
-
-*/
-
-/*
-describe('Array', function() {
-    describe('#indexOf()', function() {
-        it('should return -1 when the value is not present', function() {
-            assert.equal(-1, [1,2,3].indexOf(4));
-        });
-    });
-});*/
-

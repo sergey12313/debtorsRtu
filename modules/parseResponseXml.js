@@ -62,7 +62,20 @@ ParseXml.prototype.getGroupsAndCapacity= function () {
     try{
         optionsSaved.id=this._xmlObj.Root.command.User.id;
        // id=JSON.stringify(this._xmlObj.Root.command.User.id);
-        optionsSaved.capacity =this._xmlObj.Root.command.User.in_capacity;
+        let capacity =this._xmlObj.Root.command.User.in_capacity ;
+        if (typeof capacity === 'string'){
+            optionsSaved.capacity=capacity;
+        }
+        else if (typeof capacity === 'object'){
+            if (capacity.hasOwnProperty('__text')){
+                optionsSaved.capacity='1';
+            }
+            else{
+                 throw new XmlError('capacity error')
+            }
+
+        }
+
         let groups;
         if(!this._xmlObj.Root.command.User.groups.hasOwnProperty('group')){
            optionsSaved.groups['All']=true;
@@ -77,20 +90,6 @@ ParseXml.prototype.getGroupsAndCapacity= function () {
             }
 
         }
-
-
-        ///Может не быть групп
-/*        if(groups.splice){
-            groups.forEach((element)=>{
-                optionsSaved.groups[element.name]=JSON.parse(element.enabled)
-            })
-
-        }*/
-        
-
-      //  console.log(groups.splice)
-        //groups.forEach()
-        //console.log(groups);
 
 
     }
