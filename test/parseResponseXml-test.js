@@ -52,35 +52,40 @@ describe('Get Rtu', ()=>{
 
 });
 
-describe('Проверка Парсинга', ()=>{
-    let xml={};
+describe('Parser test', ()=>{
+    let resultResponse={};
     for(let key in TestsNumbers){
-        xml[key]=XmlStringGen(TestsNumbers[key]).getNumConfigs();
+        let xml=XmlStringGen(TestsNumbers[key]).getNumConfigs();
+        resultResponse[key]=rtuRequest(xml);
     }
-    for(let key in xml)
+    for(let key in resultResponse)
     {
-        it(`привутсвие объекта групп у ${key}`,()=>{
-            return rtuRequest(xml[key]).then(result=>{
-                let obj = new ParseXml(result).getGroupsAndCapacity();
-                //console.log(obj);
-                expect(obj).to.have.property('groups')
-                    .that.is.an('object')
-                    .to.be.not.empty;
-                expect(obj).to.have.property('capacity');
+        describe(`[${key}]`, ()=>{
+            it(`To have property: groups, capacity and id`,()=>{
+                return resultResponse[key].then(result=>{
+                    let obj = new ParseXml(result).getGroupsAndCapacity();
+                    expect(obj).to.have.all.keys('groups','capacity','id');
+                })
+            });
+            it(`Capacity сan be convert to a number`,()=>{
+
+                return resultResponse[key].then(result=>{
+                    let obj = new ParseXml(result).getGroupsAndCapacity();
+                    let toNum = Number(obj.capacity);
+                    //console.log(toNum);
+                    expect(toNum).to.be.a('number').not.to.be.NaN;
+
+                })
+            });
 
 
-            })
+
+
+
+
         });
-        it(`привутсвие capacity у ${key}`,()=>{
-            return rtuRequest(xml[key]).then(result=>{
-                let obj = new ParseXml(result).getGroupsAndCapacity();
 
-                //console.log(obj);
-                //expect(obj).to.have.property('capacity')
-                  //  .to.satisfy(+);
 
-            })
-        });
 
     }
 
