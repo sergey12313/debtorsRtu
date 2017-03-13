@@ -1,9 +1,9 @@
 "use strict";
 
 const chai =require('chai');
-const rtuRequest= require('../modules/RtuHttpRequest');
-const XmlStringGen=require("../modules/xmlStringGen");
-const ParseXml=require('../modules/parseResponseXml');
+const rtuRequest= require('../lib/RtuHttpRequest');
+const XmlStringGen=require("../lib/xmlStringGen");
+const ParseRtuXml=require('../lib/ParseRtuXml');
 
 
 chai.should();
@@ -43,26 +43,24 @@ describe('Parser test', ()=>{
     for(let key in resultResponse)
     {
         describe(`[${key}]`, ()=>{
+            it(`To have property: groups, capacity and id`, async ()=>{
+                let req = await resultResponse[key];
+                let parsed= await ParseRtuXml.init(req).getGroupsAndCapacity();
+                return  expect(parsed).to.have.all.keys('groups','capacity','id')
 
-            it(`To have property: groups, capacity and id`,()=>{
-                return resultResponse[key].then(result=>{
-                    let obj = new ParseXml(result).getGroupsAndCapacity();
-                    expect(obj).to.have.all.keys('groups','capacity','id')
-                });
             });
+            it(`Capacity сan be convert to a number`, async ()=>{
+                let req = await resultResponse[key];
+                let parsed= await ParseRtuXml.init(req).getGroupsAndCapacity();
+                let toNum = Number(parsed.capacity);
+                return expect(toNum).to.be.a('number').not.to.be.NaN;
 
-            it(`Capacity сan be convert to a number`,()=>{
-
-                return resultResponse[key].then(result=>{
-                    let obj = new ParseXml(result).getGroupsAndCapacity();
-                    let toNum = Number(obj.capacity);
-                    expect(toNum).to.be.a('number').not.to.be.NaN;
-                })
             });
-            it(`Id is string `,()=>{
-                return resultResponse[key].then(result=>{
-                    expect(result).to.be.a('string');
-                })
+            it(`Id is string `,async ()=>{
+                let req = await resultResponse[key];
+                let parsed= await ParseRtuXml.init(req).getGroupsAndCapacity();
+                return expect(parsed.id).to.be.a('string');
+
 
             });
             it('set Deb and return default',()=>{

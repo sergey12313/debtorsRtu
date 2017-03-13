@@ -2,10 +2,10 @@
  * Created by sergey on 14.02.17.
  */
 "use strict";
-const XmlStringGen=require("./modules/xmlStringGen");
+const XmlStringGen=require("./lib/xmlStringGen");
 const ProgressBar = require('progress');
-const rtuRequest=require("./modules/RtuRequest");
-const parseResponseXml = require('./modules/parseResponseXml');
+const rtuRequest=require("./lib/RtuRequest");
+const parseResponseXml = require('./lib/ParseRtuXml');
 const co = require("co");
 let Log = require('log')
     , fs = require('fs')

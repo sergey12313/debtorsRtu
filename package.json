@@ -5,13 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node --harmony index.js",
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "./node_modules/mocha/bin/mocha --harmony"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "chai": "^3.5.0",
-    "co": "^4.6.0",
     "log": "^1.4.0",
     "mocha": "^3.2.0",
     "node-fetch": "^1.6.3",
