@@ -22,12 +22,11 @@ function preParse() {
     }
 }
 
-function ParseXml(xml,options) {
+function ParseXml(xml) {
     if (!(this instanceof ParseXml)){
-        return new ParseXml(...arguments);
+        return new ParseXml(xml);
     }
     this._xml=xml;
-    this.options=options||{};
     preParse.call(this);
     let x2js = new X2JS();
     this._xmlObj=x2js.xml2js(this._xml);
