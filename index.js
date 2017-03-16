@@ -1,92 +1,78 @@
-/**
- * Created by sergey on 14.02.17.
- */
-"use strict";
-const XmlStringGen=require("./lib/xmlStringGen");
-const ProgressBar = require('progress');
-const rtuRequest=require("./lib/RtuRequest");
-const parseResponseXml = require('./lib/ParseRtuXml');
-const co = require("co");
-let Log = require('log')
-    , fs = require('fs')
-    , log = new Log('debug', fs.createWriteStream('my.log'));
+'use strict';
 
-async function rtu(num) {
-    let xml = XmlStringGen(num).getNumConfigs();
-    let res = await rtuRequest(xml);
-    return parseResponseXml(res).parseRtuResponse().getGroupsAndCapacity();
+const db = require('sqlite');
+const {difference,range} = require('lodash');
+const XmlStringGen=require("./lib/xmlStringGen");
+const rtuRequest= require('./lib/RtuHttpRequest');
+const ParseRtuXml=require('./lib/ParseRtuXml');
+
+async function on() {
+
 }
 
+async function off(arr) {
+    if(arr.length===0){
+        return true;
+    }
+    for(let i=0;i<arr.length;i++){
+        let item=arr[i];
+        let xmlGetNumConfigs=await XmlStringGen(item).getNumConfigs();
+        let resNumConfigs=await rtuRequest(xmlGetNumConfigs);
+        let parsedGroupAndCapacity;
+        try{
+            parsedGroupAndCapacity = await ParseRtuXml.getGroupsAndCapacity(resNumConfigs);//!!!
 
-
-let num =[20000,75566,24757,12345];
-/*for(let i=20000; i<=20220;i++){
-    num.push(i);
-}*/
-
-log.error("123");
-async function test(){
-    let dateStart =new Date();
-    let result = [];
-    var bar = new ProgressBar('Rtu Upload [:bar] ', { total: num.length });
-     for(let i=0; i<num.length;i++){
-        let res;
-
-        try {
-            res= await rtu(num[i])
         }
         catch (e){
-            if(e.name==='XmlParserError' && e.extra==='not_found'){
-                res = {
-                    id: `${num[i]}`,
-                    capacity:`${0}`,
-                    groups:`not_found`
-
-                }
+            if(e.extra===404){
+                parsedGroupAndCapacity={"id":item,"groups":{},"capacity":0,"found":0}
             }
             else {
-               console.log(e)
-
+                throw (e);
             }
-
         }
-        bar.tick();
-       result.push(res)
+        let {id,capacity}=parsedGroupAndCapacity;
+        let groups= JSON.stringify(parsedGroupAndCapacity.groups);
+        let found= (parsedGroupAndCapacity.hasOwnProperty('found'))?parsedGroupAndCapacity.found:1;
+        let run = await db.run(`INSERT INTO deb (id,groups,capacity,found) VALUES (${id}, '${groups}',${capacity} ,${found})`);
+        //console.log(run);
     }
-    let dateEnd=new Date();
-    let time=(dateEnd-dateStart)/1000;
-    console.log(time);
-    return result;
+
+}
+async function run() {
+    let arr1=range(20000,30000);
+    let arr2=range(70000,80000);
+    let arr3=range(90000,95000);
+    let arr=[...arr1,...arr2,...arr3];
+    console.log(arr.length);
+
+
+    let sybaseNums = await Promise.resolve(arr);
+    await db.open('./configs/db.sqlite');
+    // await db.run(`DROP TABLE deb`);
+    //await db.run(`CREATE TABLE deb(id INT PRIMARY KEY,groups TEXT,capacity INT,found INT DEFAULT 1)`);
+    let result = await db.all('SELECT * FROM deb');
+    let localNums =result.map((item)=>{
+        return item.id
+    });
+    let needOff = difference(sybaseNums,localNums);
+    let needOn = difference(localNums,sybaseNums);
+    let offResult;
+    try{
+       offResult =await off(needOff);
+    }
+    catch (e){
+        console.log(e);
+    }
+
+    console.log('needOff',needOff);
+    console.log('needOn',needOn);
+
+    result=await db.all('SELECT * FROM deb');
+
 
 }
 
-test().then(r=>console.log(JSON.stringify(r,'',2))).catch(e=> console.log("E",e));
-
-
-
-/*function *rtuGet() {
-    let result={};
-    let xml;
-    let dateStart =new Date();
-    for (let i=24300; i<24500;i++){
-        try {
-            if (i === 24310) {
-                throw (new Error('adfsdf'));
-            }
-            xml = XmlStringGen(i).getNumConfigs();
-            yield rtuRequest(xml).then((text) => result[i] = text);
-        }
-        catch (e){
-            log.error("wrewer");
-        }
-    }
-    let dateEnd=new Date();
-    let time=(dateEnd-dateStart)/1000;
-    return {result:result,time:time};
-}
-let mylog =(er)=>log.error("Jib,rf");
-log.error("wrewer");
-co(rtuGet).then((data)=>console.log(data.result,data.time))
-    .catch(error=>log.error(error));*/
-
+run();
+    
 

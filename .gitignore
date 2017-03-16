@@ -55,7 +55,8 @@ fastlane/Preview.html
 fastlane/screenshots
 
 
-.idea
+.idea/
 configs/configs.json
 git-ignore/
 my.log
+/configs/db.sqlite

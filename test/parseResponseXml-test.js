@@ -12,7 +12,7 @@ chai.should();
 const TestsNumbers={
     'numForReadWrite':'16666',
     'capacityEmptyAndManyGroups': '16667',
-    'globalCapacity':'16668',
+    'globalCapacityAndOneGroup':'16668',
     'notGroups':'16669'
 
 };
@@ -47,50 +47,74 @@ describe('Parser test', ()=>{
     }
     for(let key in resultResponse)
     {
-
-
         describe(`[${key}]`, ()=>{
             it(`To have property: groups, capacity and id`, async ()=>{
-                let req = await resultResponse[key]();
-                let parseInit= await ParseRtuXml.init(req);
-                let parsed = await ParseRtuXml.getGroupsAndCapacity(parseInit);
-                //console.log(parsed)
+                let resXml = await resultResponse[key]();
+                let parsed = await ParseRtuXml.getGroupsAndCapacity(resXml);
                 return  expect(parsed).to.have.all.keys('groups','capacity','id')
 
             });
             it(`Capacity сan be convert to a number`, async ()=>{
-                let req = await resultResponse[key]();
-                let parseInit= await ParseRtuXml.init(req);
-                let parsed= await ParseRtuXml.getGroupsAndCapacity(parseInit);
-                let toNum = Number(parsed.capacity);
-                return expect(toNum).to.be.a('number').not.to.be.NaN;
+                let  resXml= await resultResponse[key]();
+                let parsed= await ParseRtuXml.getGroupsAndCapacity(resXml);
+                return expect(parsed.capacity).to.be.a('number').not.to.be.NaN;
 
             });
             it(`Id is string `,async ()=>{
-                let req = await resultResponse[key]();
-                let parseInit= await ParseRtuXml.init(req);
-                let parsed= await ParseRtuXml.getGroupsAndCapacity(parseInit);
-                return expect(parsed.id).to.be.a('string');
+                let resXml = await resultResponse[key]();
+                let parsed= await ParseRtuXml.getGroupsAndCapacity(resXml);
+                return expect(parsed.id).to.be.a('number');
+
+
+            });
+            it(`groups not empty object`,async ()=>{
+                let resXml = await resultResponse[key]();
+                let parsed= await ParseRtuXml.getGroupsAndCapacity(resXml);
+
+                
+                return expect(parsed.groups).to.be.a('object')
+                    .to.be.not.empty;
 
 
             });
 
-
-            it('set Deb and return default',()=>{
-                return
-
-
-            })
         });
     }
     it(`Throws the correct exception on not found user`,async ()=>{
         let xml = await XmlStringGen('16665').getNumConfigs();
-        let req=await rtuRequest(xml);
-        return expect(ParseRtuXml.init(req)).to.eventually.be.rejected
+        let resXml= await rtuRequest(xml);
+        return expect(ParseRtuXml.getGroupsAndCapacity(resXml)).to.eventually.be.rejected
             .and.be.an.instanceOf(XmlError)
             .to.have.property('extra')
             .to.equal(404);
     });
+
+
+    it(`test`,async ()=>{
+        let xml = await XmlStringGen('16666').getNumConfigs();//сгенерировали xml для получения свойств номера
+        let resXml=await rtuRequest(xml);                        //отправили и получили ответный xml
+        //console.log(resXml);
+        let parse = await ParseRtuXml.getGroupsAndCapacity(resXml);//распарсили в объект !!!!!!!!!!!!!!!!!!!!!
+        let toDeb= await new XmlStringGen('16666').setDebNum();   //сгененрировали xml со сойсвами дебитора
+        //console.log(parse);
+        let toDefXml =await XmlStringGen('16666').setCapacityAndGroups(parse);///сгененрировали xml со сойсвами номера из
+        //console.log(JSON.stringify(toDeb));                                 //из обьекта
+        let resXmlAfter=await rtuRequest(toDefXml);
+        let ParseEditNumXml= await ParseRtuXml.UserEditResult(resXmlAfter);
+        //console.log(ParseEditNumXml);
+
+        // должен быть распарсен обьект
+        let resAfter1=await rtuRequest(xml);
+        let parseAfter = await ParseRtuXml.getGroupsAndCapacity(resAfter1);
+
+       /* console.log(parse);
+        console.log(parseAfter);*/
+        return expect(parse).to.deep.equal(parseAfter);
+
+
+    });
+
+
 
 
 
