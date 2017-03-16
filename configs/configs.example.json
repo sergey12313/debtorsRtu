@@ -2,7 +2,7 @@
   "rtu":{
     "login":"login",
     "password":"password",
-    "ip":"8.8.8.8"
+    "ip":"8.8.8.8",
     "port":1111,
     "path":"/set.aspx"
 
@@ -18,5 +18,6 @@
     "password":"dbpassword"
 
 
-  }
+  },
+  "log":"my.log"
 }

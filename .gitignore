@@ -58,5 +58,5 @@ fastlane/screenshots
 .idea/
 configs/configs.json
 git-ignore/
-my.log
-/configs/db.sqlite
+logs/*.log
+db/db.sqlite
