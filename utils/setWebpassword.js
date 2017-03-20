@@ -1,7 +1,7 @@
 'use strict';
-const XmlStringGen=require("./../lib/xmlStringGen");
-const rtuRequest= require('./../lib/RtuHttpRequest');
-const ParseRtuXml=require('./../lib/ParseRtuXml');
+const XmlStringGen=require("./../lib/xml-string-gen");
+const rtuRequest= require('./../lib/rtu-http-request');
+const ParseRtuXml=require('./../lib/parse-rtu-xml');
  const arr=[
 
 

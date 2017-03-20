@@ -4,9 +4,10 @@ const Log=require('log');
 const fs = require('fs');
 const {logPath,sqliteFile}=require('./configs/configs.json');
 const {difference,range} = require('lodash');
-const XmlStringGen=require("./lib/xmlStringGen");
-const rtuRequest= require('./lib/RtuHttpRequest');
-const ParseRtuXml=require('./lib/ParseRtuXml');
+const XmlStringGen=require("./lib/xml-string-gen");
+const rtuRequest= require('./lib/rtu-http-request');
+const ParseRtuXml=require('./lib/parse-rtu-xml');
+const sybaseQuery=require('./lib/sybase-query');
 const logFile=`${logPath}/my.log`;
 const log= new Log('debug',fs.createWriteStream(logFile,{flags:'a'}));
 
@@ -88,11 +89,17 @@ async function off(arr) {
     return true
 }
 async function run() {
-   let arr1=range(20000,30000);
+    let sybase = await sybaseQuery();
+    console.log(sybase);
+    let sybaseNums;
 
-
-
-    let sybaseNums = await Promise.resolve([...range(16666,16674),/*...[20000]*/]);////need big exception
+    try{
+        sybaseNums = await Promise.resolve([...range(16666,16674),/*...[20000]*/]);
+    }
+    catch(e) {
+        console.error(e);
+        return false;
+    }
     await db.open(sqliteFile);
     // await db.run(`DROP TABLE deb`);
    // await db.run(`CREATE TABLE deb(id INT PRIMARY KEY,groups TEXT,capacity INT,found INT DEFAULT 1)`);
@@ -102,29 +109,30 @@ async function run() {
     });
     let needOff = difference(sybaseNums,localNums);
     let needOn = difference(localNums,sybaseNums);
+    if(needOff.length>0){
+        console.log('off',needOff)
+    }
+    if(needOn.length>0){
+        console.log('on',needOff)
+    }
+
     let offResult,onResult ;
     try{
        offResult =await off(needOff);
        onResult =await on(needOn);
     }
     catch (e){
-        console.log(e);
+        console.error(e);
     }
 
-    console.log('needOff',needOff);
-    console.log('needOn',needOn);
-    log.info('needOff',needOff);
-    log.info('needOn',needOn);
-
-    result=await db.all('SELECT * FROM deb');
 
 
 }
 
 
-
+run();
 let  timerId = setTimeout(function tick() {
     run();
-    timerId = setTimeout(tick, 20000);
-}, 20000);
+    timerId = setTimeout(tick, 120000);
+}, 120000);
 

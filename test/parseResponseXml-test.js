@@ -1,11 +1,11 @@
 "use strict";
 
 const chai =require('chai');
-const rtuRequest= require('../lib/RtuHttpRequest');
-const XmlStringGen=require("../lib/xmlStringGen");
-const ParseRtuXml=require('../lib/ParseRtuXml');
+const rtuRequest= require('../lib/rtu-http-request');
+const XmlStringGen=require("../lib/xml-string-gen");
+const ParseRtuXml=require('../lib/parse-rtu-xml');
 const cap = require('chai-as-promised');
-const  XmlError =require('../lib/XmlError');
+const  XmlError =require('../lib/xml-error');
 
 chai.use(cap);
 chai.should();
