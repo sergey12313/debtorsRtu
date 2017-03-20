@@ -15,9 +15,11 @@
     "port":5002,
     "dbName":"dbname",
     "user":"dblogin",
-    "password":"dbpassword"
+    "password":"dbpassword",
+    "jar":"node_modules/sybase/JavaSybaseLink/dist/JavaSybaseLink.jar"
 
 
   },
-  "log":"my.log"
+  "logPath":"./logs/",
+  "sqliteFile":"./db/db.sqlite"
 }
