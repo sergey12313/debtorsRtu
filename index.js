@@ -7,8 +7,8 @@ const {difference,range} = require('lodash');
 const XmlStringGen=require("./lib/xmlStringGen");
 const rtuRequest= require('./lib/RtuHttpRequest');
 const ParseRtuXml=require('./lib/ParseRtuXml');
-const logFile=`${logPath}${Date.now()}.log`;
-const log= new Log('debug',fs.createWriteStream(logFile));
+const logFile=`${logPath}/my.log`;
+const log= new Log('debug',fs.createWriteStream(logFile,{flags:'a'}));
 
 async function on(arr) {
     if(arr.length===0){
@@ -16,12 +16,33 @@ async function on(arr) {
     }
     for(let i=0;i<arr.length;i++){
         let item=arr[i];
-        let settingsFromDb=await db.get(`SELECT * from deb WHERE id=${item}`);
-        settingsFromDb.groups=JSON.parse(settingsFromDb.groups);
+        try{
+            let settingsFromDb=await db.get(`SELECT * from deb WHERE id=${item}`);
 
-        let XmlSetDef=await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
-        console.log(XmlSetDef);
+            if(!settingsFromDb.found){
+                await db.run(`DELETE FROM deb WHERE id ='${item}'`);
+            }
+            else{
+                settingsFromDb.groups=JSON.parse(settingsFromDb.groups);
+                let XmlSetDef=await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
+                let editRes = await rtuRequest(XmlSetDef);
+                let resultEditRes= await ParseRtuXml.UserEditResult(editRes);
+                if(resultEditRes){
+                    await db.run(`DELETE FROM deb WHERE id ='${item}'`);
+                }
+                else {
+                    throw new Error(`result at function 'on' from number ${item} false `)
+                }
+
+            }
+        }
+        catch (e){
+            log.error(e);
+
+        }
+
     }
+    return true;
 
 }
 
@@ -42,7 +63,10 @@ async function off(arr) {
             if(e.extra===404){
                 parsedGroupAndCapacity={"id":item,"groups":{},"capacity":0,"found":0}
             }
-            throw (e );
+            else{
+                log.error(e);
+                continue;
+            }
         }
         let {id,capacity}=parsedGroupAndCapacity;
         let groups= JSON.stringify(parsedGroupAndCapacity.groups);
@@ -64,14 +88,11 @@ async function off(arr) {
     return true
 }
 async function run() {
-   /* let arr1=range(20000,30000);
-    let arr2=range(70000,80000);
-    let arr3=range(90000,95000);
-    let arr=[...arr1,...arr2,...arr3];
-    console.log(arr.length);*/
+   let arr1=range(20000,30000);
 
 
-    let sybaseNums = await Promise.resolve([...range(16670,16675),/*...[20000]*/]);////need big exception
+
+    let sybaseNums = await Promise.resolve([...range(16666,16674),/*...[20000]*/]);////need big exception
     await db.open(sqliteFile);
     // await db.run(`DROP TABLE deb`);
    // await db.run(`CREATE TABLE deb(id INT PRIMARY KEY,groups TEXT,capacity INT,found INT DEFAULT 1)`);
@@ -92,12 +113,18 @@ async function run() {
 
     console.log('needOff',needOff);
     console.log('needOn',needOn);
+    log.info('needOff',needOff);
+    log.info('needOn',needOn);
 
     result=await db.all('SELECT * FROM deb');
 
 
 }
 
-run();
-    
+
+
+let  timerId = setTimeout(function tick() {
+    run();
+    timerId = setTimeout(tick, 20000);
+}, 20000);
 

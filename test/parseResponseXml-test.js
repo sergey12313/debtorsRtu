@@ -93,12 +93,13 @@ describe('Parser test', ()=>{
     it(`test`,async ()=>{
         let xml = await XmlStringGen('16666').getNumConfigs();//сгенерировали xml для получения свойств номера
         let resXml=await rtuRequest(xml);                        //отправили и получили ответный xml
-        //console.log(resXml);
+        console.log(resXml);
         let parse = await ParseRtuXml.getGroupsAndCapacity(resXml);//распарсили в объект !!!!!!!!!!!!!!!!!!!!!
         let toDeb= await new XmlStringGen('16666').setDebNum();   //сгененрировали xml со сойсвами дебитора
-        //console.log(parse);
+        console.log(toDeb);
         let toDefXml =await XmlStringGen('16666').setCapacityAndGroups(parse);///сгененрировали xml со сойсвами номера из
-        //console.log(JSON.stringify(toDeb));                                 //из обьекта
+        console.log(toDefXml);
+                                        //из обьекта
         let resXmlAfter=await rtuRequest(toDefXml);
         let ParseEditNumXml= await ParseRtuXml.UserEditResult(resXmlAfter);
         //console.log(ParseEditNumXml);
