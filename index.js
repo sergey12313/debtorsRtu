@@ -57,7 +57,7 @@ async function off(arr) {
         let resNumConfigs=await rtuRequest(xmlGetNumConfigs);
         let parsedGroupAndCapacity;
         try{
-            parsedGroupAndCapacity = await ParseRtuXml.getGroupsAndCapacity(resNumConfigs);//!!!
+            parsedGroupAndCapacity = await ParseRtuXml.getGroupsAndCapacity(resNumConfigs);
 
         }
         catch (e){
@@ -89,20 +89,16 @@ async function off(arr) {
     return true
 }
 async function run() {
-    let sybase = await sybaseQuery();
-    console.log(sybase);
     let sybaseNums;
 
     try{
-        sybaseNums = await Promise.resolve([...range(16666,16674),/*...[20000]*/]);
+        sybaseNums = await sybaseQuery();
     }
     catch(e) {
         console.error(e);
         return false;
     }
     await db.open(sqliteFile);
-    // await db.run(`DROP TABLE deb`);
-   // await db.run(`CREATE TABLE deb(id INT PRIMARY KEY,groups TEXT,capacity INT,found INT DEFAULT 1)`);
     let result = await db.all('SELECT * FROM deb');
     let localNums =result.map((item)=>{
         return item.id
