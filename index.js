@@ -1,15 +1,13 @@
 'use strict';
 const db = require('sqlite');
 const Log=require('log');
-const fs = require('fs');
-const {logPath,sqliteFile}=require('./configs/configs.json');
-const {difference,range} = require('lodash');
+const {sqliteFile}=require('./configs/configs.json');
+const {difference} = require('lodash');
 const XmlStringGen=require("./lib/xml-string-gen");
 const rtuRequest= require('./lib/rtu-http-request');
 const ParseRtuXml=require('./lib/parse-rtu-xml');
 const sybaseQuery=require('./lib/sybase-query');
-const logFile=`${logPath}/my.log`;
-const log= new Log('debug',fs.createWriteStream(logFile,{flags:'a'}));
+
 
 async function on(arr) {
     if(arr.length===0){
@@ -38,7 +36,7 @@ async function on(arr) {
             }
         }
         catch (e){
-            log.error(e);
+            console.error(e+` other error function 'on' from number ${item} false `);
 
         }
 
@@ -65,7 +63,7 @@ async function off(arr) {
                 parsedGroupAndCapacity={"id":item,"groups":{},"capacity":0,"found":0}
             }
             else{
-                log.error(e);
+                console.error(e+` other error parse on function 'off' from number ${item} `);
                 continue;
             }
         }
@@ -80,7 +78,7 @@ async function off(arr) {
                 parsedSetDebResult=await ParseRtuXml.UserEditResult(resSetDeb);
             }
             catch (e){
-                log.error(e);
+                console.error(e+` other error function 'off' from number ${item}`);
                 continue;
             }
         }
@@ -98,6 +96,7 @@ async function run() {
         console.error(e);
         return false;
     }
+
     await db.open(sqliteFile);
     let result = await db.all('SELECT * FROM deb');
     let localNums =result.map((item)=>{
@@ -109,7 +108,7 @@ async function run() {
         console.log('off',needOff)
     }
     if(needOn.length>0){
-        console.log('on',needOff)
+        console.log('on',needOn)
     }
 
     let offResult,onResult ;
@@ -125,10 +124,18 @@ async function run() {
 
 }
 
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-run();
-let  timerId = setTimeout(function tick() {
-    run();
-    timerId = setTimeout(tick, 120000);
-}, 120000);
+async function loop() {
+    while(1){
+        await run();
+        await timeout(120000);
+    }
+
+
+}
+
+loop();
 
