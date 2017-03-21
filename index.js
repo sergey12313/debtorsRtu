@@ -1,6 +1,5 @@
 'use strict';
 const db = require('sqlite');
-const Log=require('log');
 const {sqliteFile}=require('./configs/configs.json');
 const {difference} = require('lodash');
 const XmlStringGen=require("./lib/xml-string-gen");
