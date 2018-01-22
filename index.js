@@ -2,10 +2,11 @@
 const db = require('sqlite');
 const {sqliteFile}=require('./configs/configs.json');
 const {difference} = require('lodash');
-const XmlStringGen=require("./lib/xml-string-gen");
+// const XmlStringGen=require("./lib/xml-string-gen");
 const rtuRequest= require('./lib/rtu-http-request');
 const ParseRtuXml=require('./lib/parse-rtu-xml');
 const sybaseQuery=require('./lib/sybase-query');
+const rtuXmlGenerator = require('./lib/rtuXmlGenerator');
 
 
 async function on(arr) {
@@ -22,7 +23,8 @@ async function on(arr) {
             }
             else{
                 settingsFromDb.groups=JSON.parse(settingsFromDb.groups);
-                let XmlSetDef=await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
+                let XmlSetDef= await new XmlStringGen(item).setCapacityAndGroups(settingsFromDb).endEdit();
+                //let XmlSetDef= await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
                 let editRes = await rtuRequest(XmlSetDef);
                 let resultEditRes= await ParseRtuXml.UserEditResult(editRes);
                 if(resultEditRes){
@@ -50,7 +52,8 @@ async function off(arr) {
     }
     for(let i=0;i<arr.length;i++){
         let item=arr[i];
-        let xmlGetNumConfigs=await XmlStringGen(item).getNumConfigs();
+        let xmlGetNumConfigs = await new XmlStringGen(item).getNumConfigs();
+        // let xmlGetNumConfigs = await XmlStringGen(item).getNumConfigs();
         let resNumConfigs=await rtuRequest(xmlGetNumConfigs);
         let parsedGroupAndCapacity;
         try{
@@ -70,7 +73,8 @@ async function off(arr) {
         let groups= JSON.stringify(parsedGroupAndCapacity.groups);
         let found= (parsedGroupAndCapacity.hasOwnProperty('found'))?parsedGroupAndCapacity.found:1;
         if (found===1){
-            let xmlSetDeb=await XmlStringGen(item).setDebNum();
+            let xmlSetDeb = await new XmlStringGen(item).setDebNum().endEdit();
+            //let xmlSetDeb=await XmlStringGen(item).setDebNum();
             let resSetDeb=await rtuRequest(xmlSetDeb);
             let parsedSetDebResult;
             try {
