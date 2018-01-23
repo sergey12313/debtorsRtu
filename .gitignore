@@ -1,7 +1,7 @@
 # OSX
 #
 .DS_Store
-
+.ecosystem.config.js
 
 # Xcode
 #
@@ -60,3 +60,4 @@ configs/configs.json
 git-ignore/
 logs/*.log
 db/db.sqlite
+db/*

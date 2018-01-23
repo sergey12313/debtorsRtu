@@ -23,7 +23,7 @@ async function on(arr) {
             }
             else{
                 settingsFromDb.groups=JSON.parse(settingsFromDb.groups);
-                let XmlSetDef= await new XmlStringGen(item).setCapacityAndGroups(settingsFromDb).endEdit();
+                let XmlSetDef= await new rtuXmlGenerator(item).setGroupAndCapacity(settingsFromDb).endEdit();
                 //let XmlSetDef= await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
                 let editRes = await rtuRequest(XmlSetDef);
                 let resultEditRes= await ParseRtuXml.UserEditResult(editRes);
@@ -52,7 +52,7 @@ async function off(arr) {
     }
     for(let i=0;i<arr.length;i++){
         let item=arr[i];
-        let xmlGetNumConfigs = await new XmlStringGen(item).getNumConfigs();
+        let xmlGetNumConfigs = await new rtuXmlGenerator(item).getNumConfig();
         // let xmlGetNumConfigs = await XmlStringGen(item).getNumConfigs();
         let resNumConfigs=await rtuRequest(xmlGetNumConfigs);
         let parsedGroupAndCapacity;
@@ -73,7 +73,7 @@ async function off(arr) {
         let groups= JSON.stringify(parsedGroupAndCapacity.groups);
         let found= (parsedGroupAndCapacity.hasOwnProperty('found'))?parsedGroupAndCapacity.found:1;
         if (found===1){
-            let xmlSetDeb = await new XmlStringGen(item).setDebNum().endEdit();
+            let xmlSetDeb = await new rtuXmlGenerator(item).setDeb().endEdit();
             //let xmlSetDeb=await XmlStringGen(item).setDebNum();
             let resSetDeb=await rtuRequest(xmlSetDeb);
             let parsedSetDebResult;
