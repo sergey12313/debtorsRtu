@@ -92,7 +92,7 @@ async function off(arr) {
 async function run() {
     let sybaseNums;
 
-    try{
+    try {
         sybaseNums = await sybaseQuery();
     }
     catch(e) {
