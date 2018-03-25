@@ -25,8 +25,6 @@ const execute = async () => {
   const array = await result.toArray();
   const res = array.map(({ number }) => number);
   const sybaseData = await sybaseQuery();
-  console.log("local,", res);
-  console.log("sybase", sybaseData);
   const needOff = difference(sybaseData, res);
   const needOn = difference(res, sybaseData);
   console.log("off", needOff);
