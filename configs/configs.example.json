@@ -10,6 +10,11 @@
   "xml":{
     "prettyXml":false
   },
+  "mongo":{
+    "url": "mongodb://1.1.1.1:27017",
+    "dbName" : "debtors",
+    "collection": "debNums"
+   },
   "sybase":{
     "host":"192.168.1.1",
     "port":5002,
@@ -19,7 +24,6 @@
     "jar":"node_modules/sybase/JavaSybaseLink/dist/JavaSybaseLink.jar"
 
 
-  },
-  "logPath":"./logs/",
-  "sqliteFile":"./db/db.sqlite"
+  }
+
 }

@@ -1,144 +1,125 @@
-'use strict';
-const db = require('sqlite');
-const {sqliteFile}=require('./configs/configs.json');
-const {difference} = require('lodash');
-// const XmlStringGen=require("./lib/xml-string-gen");
-const rtuRequest= require('./lib/rtu-http-request');
-const ParseRtuXml=require('./lib/parse-rtu-xml');
-const sybaseQuery=require('./lib/sybase-query');
-const rtuXmlGenerator = require('./lib/rtuXmlGenerator');
+const rtuRequest = require("./lib/RTU-http-request");
+const { parseRtuXmlGet, parseRtuXmlSet } = require("./lib/RTU-parse-xml");
+const sybaseQuery = require("./lib/sybase-query");
+const rtuXmlGenerator = require("./lib/RTU-xml-generator");
+const MongoClient = require("mongodb").MongoClient;
+const { difference } = require("lodash");
+const {
+  url,
+  dbName,
+  collection: collectionName
+} = require("./configs/configs.json").mongo;
+console.log(url, dbName, collectionName);
 
+const timeout = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 
-async function on(arr) {
-    if(arr.length===0){
-        return true;
-    }
-    for(let i=0;i<arr.length;i++){
-        let item=arr[i];
-        try{
-            let settingsFromDb=await db.get(`SELECT * from deb WHERE id=${item}`);
-
-            if(!settingsFromDb.found){
-                await db.run(`DELETE FROM deb WHERE id ='${item}'`);
-            }
-            else{
-                settingsFromDb.groups=JSON.parse(settingsFromDb.groups);
-                let XmlSetDef= await new rtuXmlGenerator(item).setGroupAndCapacity(settingsFromDb).endEdit();
-                //let XmlSetDef= await XmlStringGen(item).setCapacityAndGroups(settingsFromDb);
-                let editRes = await rtuRequest(XmlSetDef);
-                let resultEditRes= await ParseRtuXml.UserEditResult(editRes);
-                if(resultEditRes){
-                    await db.run(`DELETE FROM deb WHERE id ='${item}'`);
-                }
-                else {
-                    throw new Error(`result at function 'on' from number ${item} false `)
-                }
-
-            }
-        }
-        catch (e){
-            console.error(e+` other error function 'on' from number ${item} false `);
-
-        }
-
-    }
-    return true;
-
-}
-
-async function off(arr) {
-    if(arr.length===0){
-        return true;
-    }
-    for(let i=0;i<arr.length;i++){
-        let item=arr[i];
-        let xmlGetNumConfigs = await new rtuXmlGenerator(item).getNumConfig();
-        // let xmlGetNumConfigs = await XmlStringGen(item).getNumConfigs();
-        let resNumConfigs=await rtuRequest(xmlGetNumConfigs);
-        let parsedGroupAndCapacity;
-        try{
-            parsedGroupAndCapacity = await ParseRtuXml.getGroupsAndCapacity(resNumConfigs);
-
-        }
-        catch (e){
-            if(e.extra===404){
-                parsedGroupAndCapacity={"id":item,"groups":{},"capacity":0,"found":0}
-            }
-            else{
-                console.error(e+` other error parse on function 'off' from number ${item} `);
-                continue;
-            }
-        }
-        let {id,capacity}=parsedGroupAndCapacity;
-        let groups= JSON.stringify(parsedGroupAndCapacity.groups);
-        let found= (parsedGroupAndCapacity.hasOwnProperty('found'))?parsedGroupAndCapacity.found:1;
-        if (found===1){
-            let xmlSetDeb = await new rtuXmlGenerator(item).setDeb().endEdit();
-            //let xmlSetDeb=await XmlStringGen(item).setDebNum();
-            let resSetDeb=await rtuRequest(xmlSetDeb);
-            let parsedSetDebResult;
-            try {
-                parsedSetDebResult=await ParseRtuXml.UserEditResult(resSetDeb);
-            }
-            catch (e){
-                console.error(e+` other error function 'off' from number ${item}`);
-                continue;
-            }
-        }
-        await db.run(`INSERT INTO deb (id,groups,capacity,found) VALUES (${id}, '${groups}',${capacity} ,${found})`);
-    }
-    return true
-}
-async function run() {
-    let sybaseNums;
-
+const offDebtors = async (arr, collection) => {
+  if (!Array.isArray(arr))
+    throw new TypeError(`arg is offDebtors not an Array`);
+  if (!arr.length) return;
+  for (let i = 0, length = arr.length; i < length; i += 1) {
+    const currentNumber = arr[i];
+    const xmlGetNumConfigs = await new rtuXmlGenerator(
+      currentNumber
+    ).getNumConfig();
+    const resNumConfigs = await rtuRequest(xmlGetNumConfigs);
+    let parsedGroupAndCapacity;
     try {
-        sybaseNums = await sybaseQuery();
+      parsedGroupAndCapacity = await parseRtuXmlGet(resNumConfigs);
+    } catch (err) {
+      if (err.code === 404) {
+        parsedGroupAndCapacity = {
+          number: currentNumber,
+          capacity: 0,
+          found: false
+        };
+      } else {
+        console.error(
+          `${err} on offDebtors => ParseRtuXml.getGroupsAndCapacity ${currentNumber}`
+        );
+        continue;
+      }
     }
-    catch(e) {
-        console.error(e);
-        return false;
+    if (parsedGroupAndCapacity.found) {
+      const xmlSetDeb = await new rtuXmlGenerator(currentNumber)
+        .setDeb()
+        .endEdit();
+      const resSetDeb = await rtuRequest(xmlSetDeb);
+      try {
+        const parsedSetDebResult = await parseRtuXmlSet(resSetDeb);
+      } catch (err) {
+        console.error(
+          `${err}  on offDebtors => ParseRtuXml.UserEditResult ${currentNumber}`
+        );
+        continue;
+      }
     }
-
-    await db.open(sqliteFile);
-    let result = await db.all('SELECT * FROM deb');
-    let localNums =result.map((item)=>{
-        return item.id
-    });
-    let needOff = difference(sybaseNums,localNums);
-    let needOn = difference(localNums,sybaseNums);
-    if(needOff.length>0){
-        console.log('off',needOff)
+    try {
+      await collection.insertOne(parsedGroupAndCapacity);
+    } catch (err) {
+      console.error(
+        `${err}  on offDebtors => collection.insert ${currentNumber}`
+      );
     }
-    if(needOn.length>0){
-        console.log('on',needOn)
+  }
+};
+const onDebtors = async (arr, collection) => {
+  if (!Array.isArray(arr))
+    throw new TypeError(`arg is offDebtors not an Array`);
+  if (!arr.length) return;
+  for (let i = 0, length = arr.length; i < length; i += 1) {
+    const currentNumber = arr[i];
+    try {
+      const settingsFromDb = await collection.findOne({
+        number: currentNumber
+      });
+      const { found = false } = settingsFromDb;
+      if (found) {
+        const xmlSetDef = await new rtuXmlGenerator(currentNumber)
+          .setGroupAndCapacity(settingsFromDb)
+          .endEdit();
+        const editResponse = await rtuRequest(xmlSetDef);
+        const resultEditResponse = await parseRtuXmlSet(editResponse);
+      }
+      const result12 = await collection.deleteOne({
+        number: currentNumber
+      });
+    } catch (err) {
+      console.error(err);
     }
+  }
+  return true;
+};
 
-    let offResult,onResult ;
-    try{
-       offResult =await off(needOff);
-       onResult =await on(needOn);
-    }
-    catch (e){
-        console.error(e);
-    }
+const execute = async () => {
+  const con = await MongoClient.connect(url);
+  const db = con.db(dbName);
+  const collection = db.collection(collectionName);
+  const result = await collection.find(
+    {},
+    { projection: { number: 1, _id: 0 } }
+  );
+  const array = await result.toArray();
+  const res = array.map(({ number }) => number);
+  const sybaseData = await sybaseQuery();
+  console.log("local,", res);
+  console.log("sybase", sybaseData);
+  const needOff = difference(sybaseData, res);
+  const needOn = difference(res, sybaseData);
+  console.log("off", needOff);
+  console.log("on", needOn);
+  // todo write log on mongodb
+  await offDebtors(needOff, collection);
+  await onDebtors(needOn, collection);
+  await con.close();
+  console.log("close");
+};
 
-
-
-}
-
-function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function loop() {
-    while(1){
-        await run();
-        await timeout(120000);
-    }
-
-
-}
-
-loop();
-
+(async () => {
+  while (1) {
+    await execute();
+    await timeout(120000);
+  }
+})();
