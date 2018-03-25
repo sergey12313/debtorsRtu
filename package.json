@@ -1,11 +1,11 @@
 {
-  "name": "debtorsRtu",
+  "name": "debtors-rtu",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node --harmony index.js",
-    "test": "./node_modules/mocha/bin/mocha --harmony"
+    "test": "./node_modules/mocha/bin/mocha "
   },
   "author": "Sergey Razuvaev",
   "license": "ISC",
@@ -16,7 +16,7 @@
     "mongodb": "^3.0.4",
     "node-fetch": "^1.6.3",
     "sybase": "^1.0.13",
-    "xml2js": "^0.4.17",
+    "x2js": "^3.2.1",
     "xmlbuilder": "^8.2.2"
   },
   "devDependencies": {
