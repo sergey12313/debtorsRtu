@@ -38,4 +38,4 @@ const execute = async () => {
   return execute()
 };
 
-
+execute();
