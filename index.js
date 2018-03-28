@@ -34,11 +34,8 @@ const execute = async () => {
   await onDebtors(needOn, collection);
   await con.close();
   console.log("close");
+  await timeout(120000);
+  return execute()
 };
 
-(async () => {
-  while (1) {
-    await execute();
-    await timeout(120000);
-  }
-})();
+
